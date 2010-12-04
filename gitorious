@@ -631,6 +631,9 @@ cat > /var/www/${DOMAIN}/conf/vhost.conf <<CONF
 </VirtualHost>
 CONF
 
+ln -s /var/www/${DOMAIN}/conf/vhost.conf /etc/apache2/sites-available/${DOMAIN}
+a2ensite ${DOMAIN}
+
 ##
 echo 'Enable some Apache modules'
 a2enmod rewrite
