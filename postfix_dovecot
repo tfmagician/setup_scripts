@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+
+#################################################
+# Installer script for Mail server
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Required:
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-05
+# Updated : 2010-12-05
+#################################################
+
+# Check executable user.
+if [ "${whoami}" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+##
+echo 'Install Postfix and Dovecot'
+apt-get install -y postfix postfix-dev dovecot-common dovecot-dev dovecot-imapd dovecot-pop3d dovecot-postfix mailutils
+
+##
+echo 'Add user to controll virtual users of mail server'
+useradd -u 5000 -m -d /var/vmail vmail
