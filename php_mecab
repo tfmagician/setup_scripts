@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+
+#################################################
+# Installer script for php_mecab extension.
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Required:
+#  Git
+#  PHP
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-05
+# Updated : 2010-12-05
+#################################################
+
+# Check executable user.
+if [ "${whoami}" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+##
+echo 'Install mecab'
+apt-get install -y  mecab libmecab-dev mecab-ipadic
+/usr/lib/mecab/mecab-dict-index -d /usr/share/mecab/dic/ipadic -o /var/lib/mecab/dic/ipadic -f euc-jp -t utf-8 -p
+
+##
+echo 'Install php-mecab extension'
+
+mkdir ~/src
+cd ~/src
+git clone https://github.com/rsky/php-mecab.git
+cd php-mecab/
+phpize
+./configure
+make && make install
