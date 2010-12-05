@@ -5,6 +5,9 @@
 #
 # This script was tested with Ubuntu 10.04 TLS.
 #
+# Required:
+#  Git
+#
 # Author  : Takahiro Fujiwara ( tfmagician )
 # Created : 2010-12-05
 # Updated : 2010-12-05
