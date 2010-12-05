@@ -1,0 +1,63 @@
+#!/usr/bin/bash
+
+#################################################
+# Installer script for PHP5 on Apache
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-05
+# Updated : 2010-12-05
+#################################################
+
+# Check executable user.
+if [ "${whoami}" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+##
+echo 'Install Apache2'
+apt-get install -y apache2
+
+##
+echo 'Install PHP5 and some libraries'
+apt-get install -y php5-common php5-cli php5-dev php5-mysql php-pear libapache2-mod-php5
+apt-get install -y php-apc php5-mcr
+
+##
+echo 'Install CakePHP1.3'
+cd /usr/lib
+git clone https://github.com/cakephp/cakephp.git cakephp1.3
+cd /usr/bin/cakephp1.3
+git checkout -b 1.3.6
+
+cat > /usr/bin/cake <<SHL
+#!/bin/bash
+################################################################################
+#
+# Bake is a shell script for running CakePHP bake script
+# PHP versions 4 and 5
+#
+# CakePHP(tm) :  Rapid Development Framework (http://cakephp.org)
+# Copyright 2005-2010, Cake Software Foundation, Inc.
+#
+# Licensed under The MIT License
+# Redistributions of files must retain the above copyright notice.
+#
+# @copyright            Copyright 2005-2010, Cake Software Foundation, Inc.
+# @link                         http://cakephp.org CakePHP(tm) Project
+# @package                      cake
+# @subpackage           cake.cake.console
+# @since                                CakePHP(tm) v 1.2.0.5012
+# @license                      MIT License (http://www.opensource.org/licenses/mit-license.php)
+#
+################################################################################
+LIB=/usr/lib/cakephp1.3/cake/console/
+APP=\`pwd\`
+
+exec php -q \${LIB}cake.php -working "\${APP}" "\$@"
+
+exit;
+SHL
+chmod 755 /usr/bin/cake
