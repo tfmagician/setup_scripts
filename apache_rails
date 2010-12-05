@@ -1,0 +1,47 @@
+#!/usr/bin/bash
+
+#################################################
+# Installer script for RubyOnRails on Apache
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Required:
+#  RubyOnRails
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-05
+# Updated : 2010-12-05
+#################################################
+
+# Check executable user.
+if [ "${whoami}" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+##
+echo 'Install Apache'
+apt-get install -y apache2
+
+##
+echo 'Install Passenger'
+gem install passenger
+apt-get install libcurl4-openssl-dev libssl-dev apache2-prefork-dev libapr1-dev libaprutil1-dev
+passenger-install-apache2-module
+
+cat > /etc/apache2/mods-available/passenger.load <<CONF
+LoadModule passenger_module /usr/lib/ruby/gems/1.8/gems/passenger-3.0.0/ext/apache2/mod_passenger.so
+CONF
+
+cat > /etc/apache2/mods-available/passenger.conf <<CONF
+PassengerRoot /usr/lib/ruby/gems/1.8/gems/passenger-3.0.0
+PassengerRuby /usr/bin/ruby1.8
+CONF
+
+##
+echo 'Enable some Apache modules'
+a2enmod rewrite
+a2enmod deflate
+a2enmod passenger
+a2enmod expires
+a2enmod rewrite
