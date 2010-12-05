@@ -45,6 +45,7 @@ done
 
 ##
 echo 'Install Sphinx'
+mkdir ~/src
 cd ~/src
 wget http://www.sphinxsearch.com/downloads/sphinx-0.9.8.tar.gz
 tar xvfz sphinx-0.9.8.tar.gz
