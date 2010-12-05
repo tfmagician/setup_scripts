@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+
+#################################################
+# Installer script for MySQL
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Author  : Takahiro Fujiwara
+# Created : 2010-12-05
+# Updated : 2010-12-05
+#################################################
+
+# Check executable user.
+if [ "${whoami}" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+##
+echo 'Install MySQL'
+apt-get install -y mysql-client-5.1 mysql-server-5.1 libmysqlclient15-dev
