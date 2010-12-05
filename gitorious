@@ -488,6 +488,7 @@ test:
   is_gitorious_dot_org: false
 CONF
 
+##
 echo 'Install remaining gems and migrate database'
 while [ -z $ROOT_PASS ]; do
   echo -n ' Enter your root password for MySQL > '
@@ -554,6 +555,51 @@ cat > /etc/logrotate.d/gitorious <<CONF
     endscript
 }
 CONF
+
+##
+echo 'Create virtual host setting'
+cat > /var/www/${DOMAIN}/conf/vhost.conf <<CONF
+<VirtualHost *:80>
+    <Directory /var/www/${DOMAIN}/gitorious/public>
+        Options FollowSymLinks
+        AllowOverride None
+        Order allow,deny
+        Allow from All
+    </Directory>
+
+    DocumentRoot /var/www/${DOMAIN}/gitorious/public
+    ServerName ${DOMAIN}
+
+    ErrorLog /var/www/${DOMAIN}/log/error.log
+    CustomLog /var/www/${DOMAIN}/log/access.log combined
+
+    # Gzip/Deflate
+    # http://fluxura.com/2006/5/19/apache-for-static-and-mongrel-for-rails-with-mod_deflate-and-capistrano-support
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/javascript text/css application/x-javascript
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+
+    # Far future expires date
+    <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf)$">
+        ExpiresActive On
+        ExpiresDefault "access plus 1 year"
+    </FilesMatch>
+
+    # No Etags
+    FileETag None
+
+    RewriteEngine On
+
+    # Check for maintenance file and redirect all requests
+    RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
+    RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+    RewriteRule ^.*$ /system/maintenance.html [L]
+</VirtualHost>
+CONF
+
+ln -s /var/www/${DOMAIN}/conf/vhost.conf /etc/apache2/sites-available/${DOMAIN}
+a2ensite ${DOMAIN}
 
 ##
 echo 'Run Gitorious processes'
