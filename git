@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+
+#################################################
+# Installer script for Git
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Author  : Takahiro Fujiwara
+# Created : 2010-12-05
+# Updated : 2010-12-05
+#################################################
+
+# Check executable user.
+if [ "${whoami}" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+##
+echo 'Install Git and system essentials'
+apt-get install -y git-core git-svn
+apt-get install -y apg build-essential libpcre3 libpcre3-dev make zlib1g zlib1g-dev ssh
