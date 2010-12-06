@@ -489,6 +489,8 @@ test:
   is_gitorious_dot_org: false
 CONF
 
+echo 'SslRequirement.disable_ssl_check = true' >> /var/www/${DOMAIN}/gitorious/config/environments/production.rb
+
 ##
 echo 'Install remaining gems and migrate database'
 while [ -z $ROOT_PASS ]; do
