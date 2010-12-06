@@ -32,7 +32,7 @@ apt-get install -y php-apc php5-mcr
 echo 'Install CakePHP1.3'
 cd /usr/lib
 git clone https://github.com/cakephp/cakephp.git cakephp1.3
-cd /usr/bin/cakephp1.3
+cd /usr/lib/cakephp1.3
 git checkout -b 1.3.6
 
 cat > /usr/bin/cake <<SHL
