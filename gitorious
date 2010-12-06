@@ -314,12 +314,12 @@ ln -s /var/www/${DOMAIN}/gitorious/script/gitorious /usr/local/bin/gitorious
 cd gitorious/
 rm public/.htaccess
 mkdir -p tmp/pids
-chown -R gitorious:gitorious gitorious
+chown -R gitorious:gitorious ../gitorious
 chmod ug+x script/*
 chmod -R g+w config/ log/ public/ tmp/
 
 cp /var/www/${DOMAIN}/gitorious/doc/templates/ubuntu/git-daemon /var/www/${DOMAIN}/gitorious/doc/templates/ubuntu/git-daemon.org
-sed -i "s/^GIT_DAEMON=.\+$/GIT_DAEMON=\"\/usr\/bin\/ruby \/var\/www\/${DOMAIN}\/gitorious\/script\/git-daemon -d\"/g" git-daemon
+sed -i "s/^GIT_DAEMON=.\+$/GIT_DAEMON=\"\/usr\/bin\/ruby \/var\/www\/${DOMAIN}\/gitorious\/script\/git-daemon -d\"/g" /var/www/${DOMAIN}/gitorious/doc/templates/ubuntu/git-daemon
 sed -i "s/^PID_FILE=.\+$/PID_FILE=\/var\/www\/${DOMAIN}\/gitorious\/log\/git-daemon.pid/g" /var/www/${DOMAIN}/gitorious/doc/templates/ubuntu/git-daemon
 
 ln -s /var/www/${DOMAIN}/gitorious/doc/templates/ubuntu/git-ultrasphinx /etc/init.d/git-ultrasphinx
@@ -338,7 +338,9 @@ mkdir /var/git
 mkdir /var/git/repositories
 mkdir /var/git/tarballs
 mkdir /var/git/tarball-work
+mkdir /home/git/repositories
 chown -R git:git /var/git
+chown -R git:git /home/git
 
 su git -c 'mkdir ~/.ssh'
 su git -c 'chmod 700 ~/.ssh'
@@ -523,7 +525,7 @@ Activate the admin user on ruby console like this.
  > user.accept_terms
  > user.save
 MSG
-script/console
+env RAILS_ENV=production ruby script/console
 
 ##
 echo 'Get Ultrasphinx running'
