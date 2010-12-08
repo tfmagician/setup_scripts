@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#################################################
+# Installer script for some useful tools.
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Required:
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-08
+# Updated : 2010-12-08
+#################################################
+
+# Check executable user.
+if [ "${whoami}" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+##
+echo 'Install some useful tools'
+apt-get install -y vim nkf landscape-common sysv-rc-conf wget
