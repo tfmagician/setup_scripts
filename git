@@ -11,7 +11,7 @@
 #################################################
 
 # Check executable user.
-if [ "${whoami}" != "root" ]; then
+if [ `whoami` != "root" ]; then
 echo "You need to be root to run this!"
   exit 2
 fi

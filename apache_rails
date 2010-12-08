@@ -14,7 +14,7 @@
 #################################################
 
 # Check executable user.
-if [ "${whoami}" != "root" ]; then
+if [ "`whoami`" != "root" ]; then
 echo "You need to be root to run this!"
   exit 2
 fi
@@ -26,7 +26,7 @@ apt-get install -y apache2
 ##
 echo 'Install Passenger'
 gem install passenger
-apt-get install libcurl4-openssl-dev libssl-dev apache2-prefork-dev libapr1-dev libaprutil1-dev
+apt-get install -y libcurl4-openssl-dev libssl-dev apache2-prefork-dev libapr1-dev libaprutil1-dev
 passenger-install-apache2-module
 
 cat > /etc/apache2/mods-available/passenger.load <<CONF
