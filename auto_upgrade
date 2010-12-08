@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#################################################
+# Installer script for package to upgrade automaticly.
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Required:
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-08
+# Updated : 2010-12-08
+#################################################
+
+# Check executable user.
+if [ `whoami` != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+apt-get install -y unattended-upgrades
+cat > /etc/apt/apt.conf.d/10periodic <<CNF
+APT::Periodic::Enable "1";
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "5";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::RandomSleep "1800";
+CNF
