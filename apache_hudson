@@ -1,0 +1,40 @@
+#!/bin/sh
+
+if [ "`whoami`" != "root" ]; then
+  echo "ERROR: You are not root!"
+  exit 1
+fi
+
+while [ -z ${DOMAIN} ]; do
+  echo -n "Your domain name using by hudson ( Enter the only domain name not include http:// ) : "
+  read DOMAIN
+done
+
+apt-get install libapache2-mod-proxy-html
+
+a2enmod proxy
+a2enmod proxy_http
+
+sed -i "s/Deny from all/Allow from all/" /etc/apache2/mods-available/proxy.conf
+
+cat > /etc/apache2/sites-available/${DOMAIN} <<CONF
+<VirtualHost *:80>
+  ServerAdmin webmaster@localhost
+
+  ServerName ${DOMAIN}
+
+  ProxyPass / http://127.0.0.1:8080/
+  ProxyPassReverse /  http://127.0.0.1:8080/
+  ProxyRequests Off
+
+  ErrorLog /var/log/apache2/${DOMAIN}-error.log
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+  # alert, emerg.
+  LogLevel warn
+
+  CustomLog /var/log/apache2/${DOMAIN}-access.log combined
+</VirtualHost>
+CONF
+
+/etc/init.d/apache2 restart

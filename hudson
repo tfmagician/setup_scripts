@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [ "`whoami`" != "root" ]; then
+  echo "ERROR: You are not root!"
+  exit 1
+fi
+
+apt-get install daemon jamvm
+
+wget -O /tmp/key http://hudson-ci.org/debian/hudson-ci.org.key
+apt-key add /tmp/key
+
+wget -O /tmp/hudson.deb http://hudson-ci.org/latest/debian/hudson.deb
+dpkg --install /tmp/hudson.deb
