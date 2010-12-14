@@ -37,4 +37,5 @@ cat > /etc/apache2/sites-available/${DOMAIN} <<CONF
 </VirtualHost>
 CONF
 
+a2ensite ${DOMAIN}
 /etc/init.d/apache2 restart
