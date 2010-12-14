@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ "`whoami`" != "root" ]; then
+  echo "ERROR: You are not root!"
+  exit 1
+fi
+
+pear channel-discover pear.piece-framework.com
+pear install piece/stagehand_testrunner
