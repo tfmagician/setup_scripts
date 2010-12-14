@@ -116,7 +116,6 @@ WebistranoConfig = {
 }
 RB
 
-
 mkdir conf
 cat > conf/vhost.conf <<CONF
 <VirtualHost *:80>
@@ -156,17 +155,20 @@ useradd -d /var/www/${DOMAIN} -M webistrano
 chown -R webistrano:webistrano /var/www/${DOMAIN}
 
 su webistrano -c 'ssh-keygen'
-echo 'Public key for Webistrano: '
-cat .ssh/id_rsa.pub
 
 ##
 echo 'Creating database for Webistrano...'
 echo "
 CREATE DATABASE webistrano;
-GRANT ALL PRIVILEGES ON 'webistrano'.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWD}';
+GRANT ALL PRIVILEGES ON webistrano.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWD}';
 FLUSH PRIVILEGES;" | mysql -uroot -p
 
 cd webistrano
 RAILS_ENV=production rake db:migrate
 
 a2ensite ${DOMAIN}
+
+echo 'Finish!'
+echo ''
+echo 'Public key for Webistrano: '
+cat .ssh/id_rsa.pub
