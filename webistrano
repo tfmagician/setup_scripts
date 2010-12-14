@@ -1,0 +1,172 @@
+#!/bin/bash
+
+#################################################
+# Installer script for Webistrano
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# required:
+#  RubyOnRails
+#  Passenger
+#  MySQL
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-14
+# Updated : 2010-12-14
+#################################################
+
+# Check executable user.
+if [ "`whoami`" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+# Get some settings.
+while [ -z $DOMAIN ]; do
+  echo -n 'Enter your domain you want to use for Webistrano service. > '
+  read DOMAIN
+done
+
+while [ -z $DB_USER ]; do
+  echo -n 'Enter user name for database for Webistrano. > '
+  read DB_USER
+done
+
+while [ -z $DB_PASSWD ]; do
+  echo -n 'Enter password for database for Webistrano. > '
+  read DB_PASSWD
+done
+
+while [ -z $ADMIN_MAIL ]; do
+  echo -n 'Enter your mail address for Webistrano admin. > '
+  read ADMIN_MAIL
+done
+
+while [ -z $MAIL_PASSWD ]; do
+  echo -n 'Enter your password for sending mail. > '
+  read MAIL_PASSWD
+done
+
+while [ -z $MAIL_DOMAIN ]; do
+  echo -n 'Enter your mail domain. > '
+  read MAIL_DOMAIN
+done
+
+while [ -z $RECIPIENT ]; do
+  echo -n 'Enter recipient mail address for webistrano exception. > '
+  read RECIPIENT
+done
+
+
+##
+echo 'Installing Webistrano...'
+mkdir /var/www/${DOMAIN}
+cd /var/www/${DOMAIN}
+git clone https://github.com/peritor/webistrano.git
+
+chmod 777 webistrano/log
+cat > webistrano/config/database.yml <<YML
+development:
+  adapter: mysql
+  database: webistrano_dev
+  username: ${DB_USER}
+  password: ${DB_PASSWD}
+  socket: /var/run/mysqld/mysqld.sock
+
+test:
+  adapter: mysql
+  database: webistrano_test
+  username: ${DB_USER}
+  password: ${DB_PASSWD}
+  socket: /var/run/mysqld/mysqld.sock
+
+production:
+  adapter: mysql
+  database: webistrano
+  username: ${DB_USER}
+  password: ${DB_PASSWD}
+  socket: /var/run/mysqld/mysqld.sock
+YML
+cat > webistrano/config/webistrano_config.rb <<RB
+WebistranoConfig = {
+  :session_secret => '`cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 50 | head -1`',
+
+  # Uncomment to use CAS authentication
+  # :authentication_method => :cas,
+
+  # SMTP settings for outgoing email
+  :smtp_delivery_method => :sendmail,
+
+  :smtp_settings => {
+    :address  => "${MAIL_DOMAIN}",
+    :port  => 25,
+    :domain  => "${MAIL_DOMAIN}",
+    :user_name  => "${ADMIN_MAIL}",
+    :password  => "${MAIL_PASSWD}",
+    :authentication  => :login
+  },
+
+  # Sender address for Webistrano emails
+  :webistrano_sender_address => "${ADMIN_MAIL}",
+
+  # Sender and recipient for Webistrano exceptions
+  :exception_recipients => "${RECIPIENT}",
+  :exception_sender_address => "${ADMIN_MAIL}"
+
+}
+RB
+
+
+mkdir conf
+cat > conf/vhost.conf <<CONF
+<VirtualHost *:80>
+  ServerAdmin webmaster@localhost
+
+  ServerName ${DOMAIN}
+
+  DocumentRoot /var/www/${DOMAIN}/webistrano/public
+
+  <Directory />
+    Options FollowSymLinks
+    AllowOverride None
+    deny from all
+  </Directory>
+
+  <Directory /var/www/${DOMAIN}/webistrano/public/>
+    Options -Indexes FollowSymLinks -MultiViews
+    AllowOverride None
+    Order allow,deny
+    allow from all
+  </Directory>
+
+  ErrorLog /var/log/apache2/infrarai.info-error.log
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+  # alert, emerg.
+  LogLevel warn
+
+  CustomLog /var/log/apache2/infrarai.info-access.log combined
+</VirtualHost>
+CONF
+ln -s /var/www/${DOMAIN}/conf/vhost.conf /etc/apache2/sites-available/${DOMAIN}
+
+##
+echo 'Creating user...'
+useradd -d /var/www/${DOMAIN} -M webistrano
+chown -R webistrano:webistrano /var/www/${DOMAIN}
+
+su webistrano -c 'ssh-keygen'
+echo 'Public key for Webistrano: '
+cat .ssh/id_rsa.pub
+
+##
+echo 'Creating database for Webistrano...'
+echo "
+CREATE DATABASE webistrano;
+GRANT ALL PRIVILEGES ON 'webistrano'.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWD}';
+FLUSH PRIVILEGES;" | mysql -uroot -p
+
+cd webistrano
+RAILS_ENV=production rake db:migrate
+
+a2ensite ${DOMAIN}
