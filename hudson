@@ -12,3 +12,9 @@ apt-key add /tmp/key
 
 wget -O /tmp/hudson.deb http://hudson-ci.org/latest/debian/hudson.deb
 dpkg --install /tmp/hudson.deb
+
+# for php build
+pear channel-discover pear.phpunit.de
+pear install phpunit/PHPUnit
+pear channel-discover pear.phing.info
+pear install phing/phing
