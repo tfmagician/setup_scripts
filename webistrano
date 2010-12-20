@@ -167,8 +167,9 @@ cd webistrano
 RAILS_ENV=production rake db:migrate
 
 a2ensite ${DOMAIN}
+/etc/init.d/apache2 reload
 
 echo 'Finish!'
 echo ''
 echo 'Public key for Webistrano: '
-cat .ssh/id_rsa.pub
+cat ../.ssh/id_rsa.pub
