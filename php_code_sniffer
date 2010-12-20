@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#################################################
+# Installer script for PHP CodeSniffer.
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Required:
+#  PHP5
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-12-20
+# Updated : 2010-12-20
+#################################################
+
+# Check executable user.
+if [ "`whoami`" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+pear install PHP_CodeSniffer
+git clone --depth 1 https://github.com/venkatrs/Cake_PHP_CodeSniffer.git /tmp/Cake_PHP_CodeSniffer
+mv /tmp/Cake_PHP_CodeSniffer/Cake /usr/share/php/PHP/CodeSniffer/Standards
