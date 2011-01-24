@@ -23,6 +23,11 @@ echo 'Install some useful tools'
 apt-get install -y vim nkf landscape-common sysv-rc-conf wget
 
 ##
+echo 'Install python modules'
+apt-get install -y python-setuptools
+easy_install pyyaml
+
+##
 echo 'Install ntp server'
 apt-get install -y ntp
 sysv-rc-conf ntp on
