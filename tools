@@ -24,7 +24,7 @@ apt-get install -y vim nkf landscape-common sysv-rc-conf wget
 
 ##
 echo 'Install python modules'
-apt-get install -y python-setuptools
+apt-get install -y libyaml-0-2 python-setuptools
 easy_install pyyaml
 
 ##
