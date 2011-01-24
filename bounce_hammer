@@ -1,0 +1,268 @@
+#!/bin/bash
+
+#################################################
+# Install script for bounceHammer
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2010-01-24
+# Updated : 2010-01-24
+#################################################
+
+# bounceHammer version
+VERSION='2.6.3'
+
+# Check executable user.
+if [ "`whoami`" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+if [ ! -e ~/src ]; then
+    mkdir ~/src
+fi
+
+cd ~/src
+wget http://dist.bouncehammer.jp/bouncehammer-${VERSION}.tar.gz
+tar zxvf bouncehammer-${VERSION}.tar.gz
+
+##
+echo 'Install automatically perl modules.'
+cd bouncehammer-${VERSION}
+for MODULE in `perl Modules.PL missing | sed 's/\*\[ NG \] //'`; do
+    cpan ${MODULE};
+done
+cpan DBD::mysql
+
+##
+echo 'Install bounceHammer.'
+./configure
+make && make install
+
+##
+echo 'Setup database and web servers for bounceHammer.'
+
+while [ -z "${DB_PASSWORD}" ]; do
+    echo -n 'Enter your root password for MySQL: '
+    read DB_PASSWORD
+    if ! mysql -uroot -p${DB_PASSWORD} -e ''; then
+        unset DB_PASSWORD
+    fi
+done
+while [ -z "${PASSWORD}" ]; do
+    echo -n 'Enter bouncehammer user password for MySQL: '
+    read PASSWORD
+done
+mysql -uroot -p${DB_PASSWORD} -e "CREATE DATABASE bouncehammer;GRANT ALL PRIVILEGES ON bouncehammer.* TO bouncehammer@localhost IDENTIFIED BY '${PASSWORD}';FLUSH PRIVILEGES;"
+
+cd /usr/local/bouncehammer/share/script
+cat ./MySQL*.sql | mysql -ubouncehammer -Dbouncehammer -p${PASSWORD}
+cat ./mastertable-* | mysql -ubouncehammer -Dbouncehammer -p${PASSWORD}
+
+cd /usr/local/bouncehammer/etc
+cat > bouncehammer.cf <<CONF
+
+# bouncehammer.cf
+# \$Id: bouncehammer.cf-example,v 1.13 2010/12/14 05:56:58 ak Exp $
+# This config file is YAML format. bin/* scripts read this file by
+# using (YAML|JSON)::Syck/ Perl module.
+#  ______   ______ _____ _____ __  __
+# / ___\ \ / / ___|_   _| ____|  \/  |
+# \___ \\ V /\___ \ | | |  _| | |\/| |
+#  ___) || |  ___) || | | |___| |  | |
+# |____/ |_| |____/ |_| |_____|_|  |_|
+#
+# System name and configuration file version,
+# *** Do not change these key and value ***
+system: 'BounceHammer'
+version: '2.0.0'
+
+#  _____ ___ _     _____
+# |  ___|_ _| |   | ____|
+# | |_   | || |   |  _|
+# |  _|  | || |___| |___
+# |_|   |___|_____|_____|
+#
+file:
+  # MaxSize: <n> Bytes, 0 is unlimit.(bin/mailboxparser)
+  maxsize: 134217728
+
+  # Temporary log file.(bin/mailboxparser)
+  templog:
+    prefix: 'hammer'
+    suffix: 'tmp'
+
+  # Stored log file.(bin/logger)
+  storage:
+    prefix: 'hammer'
+    suffix: 'log'
+
+#  ____ ___ ____  _____ ____ _____ ___  ______   __
+# |  _ \_ _|  _ \| ____/ ___|_   _/ _ \|  _ \ \ / /
+# | | | | || |_) |  _|| |     | || | | | |_) \ V /
+# | |_| | ||  _ <| |__| |___  | || |_| |  _ < | |
+# |____/___|_| \_\_____\____| |_| \___/|_| \_\|_|
+#
+directory:
+  conf: '/usr/local/bouncehammer/etc'
+  pid: '/usr/local/bouncehammer/var/pid'
+
+  # Log storage, bin/logger command uses the following directory.
+  log: '/usr/local/bouncehammer/var/log'
+
+  # Working directory of commandline tools in bin/ directory.
+  tmp: '/tmp/.BounceHammer'
+
+  # Cache directory for WebUI/Download
+  cache: '/usr/local/bouncehammer/var/cache'
+
+  # Log storage, -o(--output) option of bin/mailboxparser command
+  # overrides this value.
+  spool: '/usr/local/bouncehammer/var/spool'
+
+  # Upload directory(NOT IMPLEMENTED)
+  incoming: '/usr/local/bouncehammer/var/incoming'
+
+#  _   _ _____ _______        _____  ____  _  __
+# | \ | | ____|_   _\ \      / / _ \|  _ \| |/ /
+# |  \| |  _|   | |  \ \ /\ / / | | | |_) | ' /
+# | |\  | |___  | |   \ V  V /| |_| |  _ <| . \
+# |_| \_|_____| |_|    \_/\_/  \___/|_| \_\_|\_\
+#
+# For Future Release
+smtp:
+  relayhost: '127.0.0.1'
+  port: 25
+  authentication:
+    smtpauth: 0
+    mechanism: 'MD5'
+    username: ''
+    password: ''
+  from: 'postmaster@'
+
+#  ____    _  _____  _    ____    _    ____  _____
+# |  _ \  / \|_   _|/ \  | __ )  / \  / ___|| ____|
+# | | | |/ _ \ | | / _ \ |  _ \ / _ \ \___ \|  _|
+# | |_| / ___ \| |/ ___ \| |_) / ___ \ ___) | |___
+# |____/_/   \_\_/_/   \_\____/_/   \_\____/|_____|
+#
+database:
+  # Database type(Available values are PostgreSQL, MySQL or SQLite)
+  # If you use SQLite database, please specify a path into the dbname value.
+  # dbtype: 'SQLite'
+  # dbname: '/usr/local/bouncehammer/var/db/bouncehammer.db'
+  dbtype: 'MySQL'
+  dbname: 'bouncehammer'
+
+  # Database name, username and password of the db-user
+  username: 'bouncehammer'
+  password: '${PASSWORD}'
+
+  # Database host or IP address, and port number
+  #  Postgresql = 5432, MySQL = 3306 by default. If the dbtype value is
+  #  'SQLite', the system ignore 'hostname' and 'port'.
+  #  Connect to the database via UNIX domain socket, set empty value into
+  #  'hostname' and 'port', or set the path to the socket into 'port'.
+  #   * Socket
+  #      hostname: 'localhost' or Empty
+  #      port: '/path/to/socket' or '/path/to/socket/dir' or Empty
+  #   * TCP/IP
+  #      hostname: IP address or Hostname
+  #      port: Port number the db is listening
+  hostname: '127.0.0.1'
+  port: 3306
+
+#  _____ _   ___     _____ ____   ___  _   _ __  __ _____ _   _ _____
+# | ____| \ | \ \   / /_ _|  _ \ / _ \| \ | |  \/  | ____| \ | |_   _|
+# |  _| |  \| |\ \ / / | || |_) | | | |  \| | |\/| |  _| |  \| | | |
+# | |___| |\  | \ V /  | ||  _ <| |_| | |\  | |  | | |___| |\  | | |
+# |_____|_| \_|  \_/  |___|_| \_\\___/|_| \_|_|  |_|_____|_| \_| |_|
+#
+# Environment configurations
+environment:
+  # Timeout while read from STDIN(second)
+  timeout: 180
+
+  # Run As ...(Not implemented)
+  runas:
+    user: ''
+    group: 'bouncehammer'
+
+...
+CONF
+
+cp webui.cf-example webui.cf
+
+while [ -z "${DOMAIN}" ]; do
+  echo -n 'Enter your domain you want to use for bounceHammer service: '
+  read DOMAIN
+done
+
+mkdir /var/www/${DOMAIN}
+cd /var/www/${DOMAIN}
+mkdir conf
+cat > conf/vhost.conf <<CONF
+<VirtualHost *:80>
+  ServerAdmin webmaster@localhost
+
+  ServerName ${DOMAIN}
+
+  DocumentRoot /var/www/${DOMAIN}/bouncehammer
+
+  <Directory />
+    Options FollowSymLinks
+    AllowOverride None
+    deny from all
+  </Directory>
+
+  <Directory /var/www/${DOMAIN}/bouncehammer/>
+    Options -Indexes FollowSymLinks -MultiViews ExecCGI
+    AllowOverride None
+    Order allow,deny
+    allow from all
+  </Directory>
+
+  ErrorLog /var/log/apache2/${DOMAIN}-error.log
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+  # alert, emerg.
+  LogLevel warn
+
+  CustomLog /var/log/apache2/${DOMAIN}-access.log combined
+</VirtualHost>
+CONF
+ln -s /var/www/${DOMAIN}/conf/vhost.conf /etc/apache2/sites-available/${DOMAIN}
+mkdir bouncehammer
+cp /usr/local/bouncehammer/share/script/bouncehammer.cgi bouncehammer/index.cgi
+chmod a+x bouncehammer/index.cgi
+
+a2enmod cgi
+e2ensite ${DOMAIN}
+/etc/init.d/apache2 restart
+
+while [ -z "${MAIL_DOMAIN}" ]; do
+    echo -n 'Enter your email domain: '
+    read MAIL_DOMAIN
+done
+while [ -z "${MAIL_ACCOUNT}" ]; do
+    echo -n 'Enter your email account for analytics: '
+    read MAIL_ACCOUNT
+done
+
+cat > /var/spool/cron/vmail <<CONF
+SHELL=/bin/bash
+PATH=/usr/local/bin:/bin:/usr/bin
+MAILTO=""
+HOME=/var/vmail
+
+BHROOT='/usr/local/bouncehammer'
+14     *   *   *   *   \${BHROOT}/bin/mailboxparser -g --log /var/vmail/${MAIL_DOMAIN}/${MAIL_ACCOUNT}/new --remove
+
+34     *   *   *   *   \${BHROOT}/bin/logger -c --remove
+
+54     *   *   *   *   \${BHROOT}/bin/databasectl --update --today
+04     03  *   *   *   \${BHROOT}/bin/databasectl --update --yesterday
+CONF
+chown vmail:root /var/spool/cron/vmail
+chmod 600 /var/spool/cron/vmail

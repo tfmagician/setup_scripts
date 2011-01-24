@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #################################################
-# Installer script for Mail server
+# Install script for Mail server
+#  Setting for virtual accounts and domains.
 #
 # This script was tested with Ubuntu 10.04 TLS.
 #
@@ -9,7 +10,7 @@
 #
 # Author  : Takahiro Fujiwara ( tfmagician )
 # Created : 2010-12-05
-# Updated : 2010-12-05
+# Updated : 2011-01-24
 #################################################
 
 # Check executable user.
@@ -25,3 +26,193 @@ apt-get install -y postfix postfix-dev dovecot-common dovecot-dev dovecot-imapd 
 ##
 echo 'Add user to controll virtual users of mail server'
 useradd -u 5000 -m -d /var/vmail vmail
+
+##
+echo 'Create virtual users.'
+while [ -z "${DOMAIN}" ]; do
+    echo -n 'Enter virtual domain: '
+    read DOMAIN
+done
+while [ -z "${ACCOUNTS}" ]; do
+    echo -n 'Enter virtual user accounts ( if you have some users, split spaces ): '
+    read ACCOUNTS
+done
+while [ -z "${SUPPORT}" ]; do
+    echo -n "Select support account ( ${ACCOUNTS} ): "
+    read SUPPORT
+done
+
+cat > /etc/postfix/main.cf <<CONF
+###############################################################
+# Basic settings
+###############################################################
+
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+mail_owner = postfix
+
+# Postfix receive mails from this interfaces.
+inet_interfaces = all
+
+# Trust SMTP clients.
+mynetworks = 127.0.0.1
+
+# MTA hostname.
+myhostname = ${DOMAIN}
+
+# If this server sends email containing only username, postfix appends myorigin to username.
+append_at_myorigin = yes
+myorigin = `hostname`.localdomain
+
+# Comment out because of using virtual host.
+#mydomain = localhost
+
+# Postfix only receives email by these domains.
+mydestination = `hostname`.localdomain, localhost.localdomain, localhost
+
+unknown_local_recipient_reject_code = 550
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+
+###############################################################
+# Virtual mailbox settings
+###############################################################
+
+virtual_mailbox_domains = /etc/postfix/virtual-conf/domains
+virtual_mailbox_base = /var/vmail
+virtual_mailbox_maps = hash:/etc/postfix/virtual-conf/mailboxes
+virtual_minimum_uid = 5000
+virtual_uid_maps = static:5000
+virtual_gid_maps = static:5000
+
+###############################################################
+# SMTP Auth
+###############################################################
+
+smtpd_sasl_auth_enable = yes
+smtpd_recipient_restrictions =
+  permit_mynetworks
+  permit_sasl_authenticated
+  reject_unauth_destination
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/dovecot-auth
+
+###############################################################
+# TLS
+###############################################################
+
+smtpd_use_tls = yes
+smtpd_tls_cert_file = /etc/ssl/certs/ssl-mail.pem
+smtpd_tls_key_file = /etc/ssl/private/ssl-mail.key
+smtp_tls_CApath = /etc/ssl/certs/ca-certificates.crt
+smtpd_tls_loglevel = 1
+
+###############################################################
+# Relay Gmail server
+###############################################################
+
+#relayhost = [smtp.gmail.com]:587
+#smtp_use_tls = yes
+#smtp_sasl_auth_enable = yes
+#smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+#smtp_sasl_tls_security_options = noanonymous
+#smtp_sasl_mechanism_filter = plain
+
+###############################################################
+# Others
+###############################################################
+
+# For debug.
+#debug_peer_level = 2
+#debugger_command =
+#    PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+#    xxgdb \$daemon_directory/\$process_name \$process_id & sleep 5
+
+# Some command paths.
+sendmail_path = /usr/sbin/sendmail
+newaliases_path = /usr/bin/newaliases
+mailq_path = /usr/bin/mailq
+setgid_group = postdrop
+
+# For documents.
+#html_directory = no
+#manpage_directory = /usr/share/man
+#sample_directory = /usr/share/doc/postfix-2.3.3/samples
+#readme_directory = /usr/share/doc/postfix-2.3.3/README_FILES
+CONF
+
+if [ ! -e /etc/postfix/virtual-conf ]; then
+    mkdir /etc/postfix/virtual-conf
+fi
+cat > /etc/postfix/virtual-conf/domains <<CONF
+${DOMAIN}
+CONF
+
+for ACCOUNT in ${ACCOUNTS}; do
+cat >> /etc/postfix/virtual-conf/mailboxes <<CONF
+${ACCOUNT}@${DOMAIN} ${DOMAIN}/${ACCOUNT}/
+CONF
+done
+postmap /etc/postfix/virtual-conf/mailboxes
+
+/etc/init.d/postfix restart
+
+cp /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf.org
+cat > /etc/dovecot/dovecot.conf <<CONF
+protocols = imap pop3
+listen = *
+ssl = no
+mail_location = maildir:/var/vmail/%d/%n
+
+protocol imap {
+}
+
+protocol pop3 {
+}
+
+protocol lda {
+  postmaster_address = ${SUPPORT}@${DOMAIN}
+}
+
+auth default {
+
+  mechanisms = cram-md5 plain
+  user = root
+
+  passdb passwd-file {
+    args = /etc/dovecot/passwd
+  }
+  userdb passwd-file {
+    args = /etc/dovecot/passwd
+  }
+
+  socket listen {
+    client {
+      path = /var/spool/postfix/private/dovecot-auth
+      mode = 0660
+      user = postfix
+      group = postfix
+    }
+  }
+
+}
+
+dict {
+}
+
+plugin {
+}
+CONF
+
+for ACCOUNT in ${ACCOUNTS}; do
+    echo "Enter password for user ${ACCOUNT}"
+    while [ -z "${PASSWORD}" ]; do
+      PASSWORD=`dovecotpw -s CRAM-MD5`
+    done
+    cat >> /etc/dovecot/passwd <<CONF
+${ACCOUNT}@${DOMAIN}:${PASSWORD}:5000:5000
+CONF
+    unset PASSWORD
+done
+
+/etc/init.d/dovecot restart
