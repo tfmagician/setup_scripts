@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ "`whoami`" != "root" ]; then
+  echo "ERROR: You are not root!"
+  exit 1
+fi
+
+apt-get install -y libapache2-mod-evasive
+
+if [ ! -e /etc/apache2/mods-available/mod-evasive.conf ]; then
+
+cat > /etc/apache2/mods-available/mod-evasive.conf <<CONF
+<IfModule mod_evasive20.c>
+    DOSHashTableSize 3097
+    DOSPageCount 5
+    DOSSiteCount 50
+    DOSPageInterval 2
+    DOSSiteInterval 1
+    DOSBlockingPeriod 60
+</IfModule>
+CONF
+a2enmod mod-evasive
+
+fi

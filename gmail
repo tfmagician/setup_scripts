@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "`whoami`" != "root" ]; then
+  echo "ERROR: You are not root!"
+  exit 1
+fi
+
+cd /usr/lib
+git clone git://github.com/tfmagician/gmail.git
+ln -s /usr/lib/gmail/gmail.py /usr/bin/gmail
