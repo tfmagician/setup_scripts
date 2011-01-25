@@ -22,7 +22,7 @@ fi
 
 ##
 echo 'Install mecab'
-apt-get install -y  mecab libmecab-dev mecab-ipadic
+apt-get install -y  mecab mecab-utils libmecab-dev mecab-ipadic libmecab-dev
 /usr/lib/mecab/mecab-dict-index -d /usr/share/mecab/dic/ipadic -o /var/lib/mecab/dic/ipadic -f euc-jp -t utf-8 -p
 
 ##
