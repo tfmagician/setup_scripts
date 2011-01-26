@@ -238,7 +238,7 @@ cp /usr/local/bouncehammer/share/script/bouncehammer.cgi bouncehammer/index.cgi
 chmod a+x bouncehammer/index.cgi
 
 a2enmod cgi
-e2ensite ${DOMAIN}
+a2ensite ${DOMAIN}
 /etc/init.d/apache2 restart
 
 while [ -z "${MAIL_DOMAIN}" ]; do
