@@ -250,10 +250,10 @@ while [ -z "${MAIL_ACCOUNT}" ]; do
     read MAIL_ACCOUNT
 done
 
-cat > /var/spool/cron/vmail <<CONF
+su vmail -c "cat | crontab <<CONF
 SHELL=/bin/bash
 PATH=/usr/local/bin:/bin:/usr/bin
-MAILTO=""
+MAILTO=''
 HOME=/var/vmail
 
 BHROOT='/usr/local/bouncehammer'
@@ -263,6 +263,5 @@ BHROOT='/usr/local/bouncehammer'
 
 54     *   *   *   *   \${BHROOT}/bin/databasectl --update --today
 04     03  *   *   *   \${BHROOT}/bin/databasectl --update --yesterday
-CONF
-chown vmail:root /var/spool/cron/vmail
+CONF"
 chmod 600 /var/spool/cron/vmail
