@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#################################################
+# Installer script for Scrapy
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2011-04-12
+# Updated : 2011-04-12
+#################################################
+
+# Check executable user.
+if [ "`whoami`" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+if [ -z "`cat /etc/apt/sources.list | grep 'http://archive.scrapy.org/ubuntu'`" ]; then
+    echo '' >> /etc/apt/sources.list
+    echo '# For scrapy project.' >> /etc/apt/sources.list
+    echo 'deb http://archive.scrapy.org/ubuntu lucid main' >> /etc/apt/sources.list
+fi
+aptitude install -y scrapy-0.12
