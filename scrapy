@@ -21,4 +21,6 @@ if [ -z "`cat /etc/apt/sources.list | grep 'http://archive.scrapy.org/ubuntu'`" 
     echo '# For scrapy project.' >> /etc/apt/sources.list
     echo 'deb http://archive.scrapy.org/ubuntu lucid main' >> /etc/apt/sources.list
 fi
+curl -s http://archive.scrapy.org/ubuntu/archive.key | apt-key add -
+apt-get update
 aptitude install -y scrapy-0.12
