@@ -154,6 +154,7 @@ ${ACCOUNT}@${DOMAIN} ${DOMAIN}/${ACCOUNT}/
 CONF
 done
 postmap /etc/postfix/virtual-conf/mailboxes
+newaliases
 
 /etc/init.d/postfix restart
 
@@ -161,6 +162,7 @@ cp /etc/dovecot/dovecot.conf /etc/dovecot/dovecot.conf.org
 cat > /etc/dovecot/dovecot.conf <<CONF
 protocols = imap pop3
 listen = *
+disable_plaintext_auth = no
 ssl = no
 mail_location = maildir:/var/vmail/%d/%n
 
