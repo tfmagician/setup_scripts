@@ -16,6 +16,7 @@ echo "You need to be root to run this!"
   exit 2
 fi
 
+atp-get install -y crul
 if [ -z "`cat /etc/apt/sources.list | grep 'http://archive.scrapy.org/ubuntu'`" ]; then
     echo '' >> /etc/apt/sources.list
     echo '# For scrapy project.' >> /etc/apt/sources.list
@@ -23,4 +24,4 @@ if [ -z "`cat /etc/apt/sources.list | grep 'http://archive.scrapy.org/ubuntu'`" 
 fi
 curl -s http://archive.scrapy.org/ubuntu/archive.key | apt-key add -
 apt-get update
-aptitude install -y scrapy-0.12
+aptitude install -y scrapy-0.12 scrapyd-0.12
