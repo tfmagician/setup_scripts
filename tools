@@ -30,7 +30,7 @@ easy_install pyyaml
 ##
 echo 'Install ntp server'
 apt-get install -y ntp
-sysv-rc-conf ntp on
+/usr/sbin/sysv-rc-conf ntp on
 
 cp /etc/ntp.conf /etc/ntp.conf.org
 sed -i "s/server ntp\.ubuntu\.com/server ntp.nict.jp\\`echo -e '\nserver ntp.nict.jp'`\\`echo -e '\nserver ntp.nict.jp'`/g" /etc/ntp.conf
