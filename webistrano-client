@@ -1,0 +1,35 @@
+#!/bin/sh
+
+#################################################
+# Installer script for Webistrano Client
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2011-05-18
+# Updated : 2011-05-18
+#################################################
+
+# Check executable user.
+if [ "`whoami`" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+WEBI_BASE=/var/lib/webistrano
+
+# Get some settings.
+while [ -z $APP ]; do
+  echo -n 'Enter your project name. > '
+  read APP
+done
+
+if [ ! -d $WEBI_BASE ]; then
+    mkdir $WEBI_BASE
+fi
+
+useradd -d $WEBI_BASE/$APP -s /bin/bash $APP
+if [ -z `grep "^app:" /etc/group` ]; then
+    groupadd app
+fi
+adduser $APP app
