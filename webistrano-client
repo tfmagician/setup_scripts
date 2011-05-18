@@ -28,7 +28,7 @@ if [ ! -d $WEBI_BASE ]; then
     mkdir $WEBI_BASE
 fi
 
-useradd -d $WEBI_BASE/$APP -s /bin/bash $APP
+useradd -d $WEBI_BASE/$APP -s /bin/bash -m $APP
 if [ -z `grep "^app:" /etc/group` ]; then
     groupadd app
 fi
