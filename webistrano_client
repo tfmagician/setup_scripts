@@ -33,6 +33,10 @@ if [ -z `grep "^app:" /etc/group` ]; then
     groupadd app
 fi
 adduser $APP app
+if [ -n `grep "^www-data:" /etc/group` ]; then
+    adduser www-data app
+fi
+adduser $APP app
 
 su $APP -c "ssh-keygen"
 
