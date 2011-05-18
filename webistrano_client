@@ -19,7 +19,7 @@ fi
 WEBI_BASE=/var/lib/webistrano
 
 # Get some settings.
-while [ -z $APP ]; do
+while [ -z "$APP" ]; do
   echo -n 'Enter your project name. > '
   read APP
 done
@@ -35,3 +35,9 @@ fi
 adduser $APP app
 
 su $APP -c "ssh-keygen"
+
+while [ -z "$KEY" ]; do
+  echo -n 'Enter your publication key for webistrano. > '
+  read KEY
+done
+su $APP -c "echo $KEY > $WEBI_BASE/$APP/.ssh/authorized_keys"
