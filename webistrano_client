@@ -41,3 +41,5 @@ while [ -z "$KEY" ]; do
   read KEY
 done
 su $APP -c "echo $KEY > $WEBI_BASE/$APP/.ssh/authorized_keys"
+
+ln -s $WEBI_BASE/$APP/current /srv/$APP
