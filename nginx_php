@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#################################################
+# Installer script for PHP5 on Nginx
+#
+# This script was tested with Ubuntu 10.04 TLS.
+#
+# Author  : Takahiro Fujiwara ( tfmagician )
+# Created : 2011-06-30
+# Updated : 2011-06-30
+#################################################
+
+# Check executable user.
+if [ "`whoami`" != "root" ]; then
+echo "You need to be root to run this!"
+  exit 2
+fi
+
+apt-get install -y python-software-properties
+
+add-apt-repository ppa:nginx/php5
+
+apt-get update
+
+apt-get install -y php5-fpm
