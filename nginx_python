@@ -23,4 +23,8 @@ add-apt-repository ppa:nginx/stable
 
 apt-get update
 
-apt-get install -y nginx uwsgi-python
+apt-get install -y nginx uwsgi-python gawk
+
+mkdir -p ~/src/nginx-tools && git clone https://github.com/tfmagician/nginx-tools.git ~/src/nginx-tools
+cd ~/src/nginx-tools
+make install

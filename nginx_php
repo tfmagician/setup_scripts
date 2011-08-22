@@ -22,4 +22,8 @@ add-apt-repository ppa:nginx/php5
 
 apt-get update
 
-apt-get install -y php5-fpm
+apt-get install -y nginx php5-fpm gawk
+
+mkdir -p ~/src/nginx-tools && git clone https://github.com/tfmagician/nginx-tools.git ~/src/nginx-tools
+cd ~/src/nginx-tools
+make install
