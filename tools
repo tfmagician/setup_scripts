@@ -1,26 +1,26 @@
 #!/bin/bash
 
-#################################################
+##
+#
 # Installer script for some useful tools.
 #
-# This script was tested with Ubuntu 10.04 TLS.
+# This script was tested with Ubuntu 10.04 TLS only.
 #
 # Required:
 #
 # Author  : Takahiro Fujiwara ( tfmagician )
-# Created : 2010-12-08
-# Updated : 2010-12-08
-#################################################
+#
+##
 
 # Check executable user.
 if [ `whoami` != "root" ]; then
 echo "You need to be root to run this!"
-  exit 2
+    exit 2
 fi
 
 ##
 echo 'Install some useful tools'
-apt-get install -y vim nkf landscape-common sysv-rc-conf wget
+apt-get install -y vim nkf sysv-rc-conf wget screen
 
 ##
 echo 'Install python modules'
@@ -29,11 +29,17 @@ easy_install pyyaml
 
 ##
 echo 'Install ntp server'
-apt-get install -y ntp
-/usr/sbin/sysv-rc-conf ntp on
+while [ -z $CONFIRM ]; do
+    echo -n 'Would you install ntpd client? (if you are using VPS, ntpd client is not needed.) [y/n]:'
+    read CONFIRM
+    if [ "$CONFIRM" = "y" ]; then
+        apt-get install -y ntp
+        /usr/sbin/sysv-rc-conf ntp on
 
-cp /etc/ntp.conf /etc/ntp.conf.org
-sed -i "s/server ntp\.ubuntu\.com/server ntp.nict.jp\\`echo -e '\nserver ntp.nict.jp'`\\`echo -e '\nserver ntp.nict.jp'`/g" /etc/ntp.conf
-/etc/init.d/ntp stop
-ntpdate -b ntp.nict.jp
-/etc/init.d/ntp start
+        cp /etc/ntp.conf /etc/ntp.conf.org
+        sed -i "s/server ntp\.ubuntu\.com/server ntp.nict.jpserver jp.pool.ntp.org/g" /etc/ntp.conf
+        /etc/init.d/ntp stop
+        ntpdate -b ntp.nict.jp
+        /etc/init.d/ntp start
+    fi
+done
