@@ -20,7 +20,7 @@ fi
 
 ##
 echo 'Install some useful tools'
-apt-get install -y vim nkf sysv-rc-conf wget screen
+apt-get install -y vim nkf sysv-rc-conf wget screen ipkungfu
 
 ##
 echo 'Install python modules'
